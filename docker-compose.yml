@@ -1,0 +1,26 @@
+version: "3.8"
+
+services:
+  learnai:
+    build: .
+    ports:
+      - "8501:8501"
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+      - ./chroma_db:/app/chroma_db
+    restart: unless-stopped
+
+  # Optional: local Ollama for free Llama inference
+  # Uncomment to enable local model support
+  # ollama:
+  #   image: ollama/ollama:latest
+  #   ports:
+  #     - "11434:11434"
+  #   volumes:
+  #     - ollama_data:/root/.ollama
+  #   # After starting, run: docker exec -it ollama ollama pull llama3
+
+# volumes:
+#   ollama_data:
