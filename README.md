@@ -1,6 +1,7 @@
 # LearnAI Agent
 
 An open-source **agentic AI tutor** for ML/AI concepts. Unlike typical "chat with your PDF" demos, LearnAI Agent uses multi-agent orchestration to actively **teach** — assessing knowledge gaps, guiding learners with Socratic questioning, and adapting explanations to your level.
+<img width="1677" height="816" alt="Screenshot 2026-03-04 at 4 35 18 PM" src="https://github.com/user-attachments/assets/7d543f76-332b-455b-98ca-c2f128474777" />
 
 ## Architecture
 
@@ -144,3 +145,4 @@ Contributions welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 ## License
 
 MIT
+
