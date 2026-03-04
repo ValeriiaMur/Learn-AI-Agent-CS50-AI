@@ -158,6 +158,38 @@ with st.sidebar:
 
     st.divider()
 
+    # ---- Knowledge Base Stats ----
+    st.subheader("Knowledge Base")
+    try:
+        kb = st.session_state.agent.get_kb_stats()
+        if kb["total_chunks"] > 0:
+            m1, m2 = st.columns(2)
+            m1.metric("Files indexed", kb["total_files"])
+            m2.metric("Chunks stored", kb["total_chunks"])
+
+            with st.expander(":material/folder: Indexed files", expanded=False):
+                for fname in kb["files"]:
+                    hits = kb["source_hits"].get(fname, 0)
+                    if hits > 0:
+                        st.markdown(
+                            f"`{fname}` — referenced **{hits}** time{'s' if hits != 1 else ''}"
+                        )
+                    else:
+                        st.markdown(f"`{fname}`")
+
+            if kb["last_sources"]:
+                st.caption("Last response drew from:")
+                for src in kb["last_sources"]:
+                    st.markdown(f"  `{src}`")
+        else:
+            st.caption(
+                "No data ingested yet. Run `python -m src.rag.ingest` to index your study notes."
+            )
+    except Exception:
+        st.caption("Vector DB not initialized. Run ingestion first.")
+
+    st.divider()
+
     # ---- Quick Actions ----
     st.subheader("Quick Actions")
     col1, col2 = st.columns(2)

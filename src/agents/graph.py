@@ -118,6 +118,8 @@ class LearnAIAgent:
         self.graph = build_graph()
         self.progress = ProgressTracker()
         self.chat_history: list[dict] = []
+        self.last_sources: list[str] = []
+        self.source_hit_counts: dict[str, int] = {}
 
     def chat(self, message: str) -> str:
         """Process a user message and return the tutor's response.
@@ -144,6 +146,14 @@ class LearnAIAgent:
         # Run the graph
         result = self.graph.invoke(state)
 
+        # Track which source files were referenced
+        self.last_sources = []
+        for doc in result.get("documents", []):
+            src = doc.metadata.get("source", "unknown")
+            if src not in self.last_sources:
+                self.last_sources.append(src)
+            self.source_hit_counts[src] = self.source_hit_counts.get(src, 0) + 1
+
         # Extract topic and record progress
         topic = extract_topic(message)
         self.progress.record_interaction(topic, result["intent"])
@@ -161,3 +171,36 @@ class LearnAIAgent:
     def get_suggestions(self) -> list[str]:
         """Get suggested next topics."""
         return self.progress.get_suggested_topics()
+
+    def get_kb_stats(self) -> dict:
+        """Get knowledge base statistics from ChromaDB.
+
+        Returns dict with total_chunks, total_files, files list,
+        last-referenced sources, and cumulative hit counts.
+        """
+        stats: dict = {
+            "total_chunks": 0,
+            "total_files": 0,
+            "files": [],
+            "last_sources": self.last_sources,
+            "source_hits": self.source_hit_counts,
+        }
+        try:
+            from src.rag.retriever import HybridRetriever
+            from src.config import settings
+            r = HybridRetriever()
+            collection = r.vectorstore._collection
+            count = collection.count()
+            stats["total_chunks"] = count
+
+            # Get unique source files from stored metadata
+            result = collection.get(include=["metadatas"])
+            sources = set()
+            for meta in result.get("metadatas", []):
+                if meta and "source" in meta:
+                    sources.add(meta["source"])
+            stats["files"] = sorted(sources)
+            stats["total_files"] = len(sources)
+        except Exception:
+            pass
+        return stats
